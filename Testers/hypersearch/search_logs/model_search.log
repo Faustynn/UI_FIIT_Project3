@@ -1,0 +1,37 @@
+[2024-11-29 19:50:20,332] A new study created in memory with name: no-name-6cc20c9f-6728-44dc-97dd-d108431c2c7f
+[2024-11-29 19:53:13,887] Adam, Trial 0 finished with value: 0.05857430298394458
+[2024-11-29 19:55:53,515] SGD, Trial 1 finished with value: 0.5229330008165746
+[2024-11-29 19:58:26,887] SGD_Momentum, Trial 2 finished with value: 0.3916771633550525
+[2024-11-29 20:01:29,353] SGD_Momentum, Trial 3 finished with value: 0.13355651528909684
+[2024-11-29 20:04:23,959] Adam, Trial 4 finished with value: 0.3931720188665616
+[2024-11-29 20:07:04,951] SGD, Trial 5 finished with value: 0.20189495513781527
+[2024-11-29 20:16:25,892] Adam, Trial 6 finished with value: 2.310430186569311
+[2024-11-29 21:19:49,178] SGD_Momentum, Trial 7 finished with value: 0.30651866913407666
+[2024-11-30 03:15:10,350] Adam, Trial 8 finished with value: 0.1777370468829017
+[2024-11-30 07:18:20,796] Adam, Trial 9 finished with value: 0.09717455306235934
+[2024-11-30 08:21:50,017] Adam, Trial 10 finished with value: 2.314039588733843
+[2024-11-30 08:24:38,443] Adam, Trial 11 finished with value: 2.3078375956055464
+[2024-11-30 08:27:30,682] Adam, Trial 12 finished with value: 2.3068507325117755
+[2024-11-30 08:30:26,881] Adam, Trial 13 finished with value: 0.276745228618858
+[2024-11-30 08:33:29,231] Adam, Trial 14 finished with value: 2.3041036766805467
+[2024-11-30 08:35:58,787] SGD, Trial 15 finished with value: 0.07968277547062282
+[2024-11-30 08:38:48,368] Adam, Trial 16 finished with value: 0.07200894361231358
+[2024-11-30 08:41:52,240] Adam, Trial 17 finished with value: 2.304361343383789
+[2024-11-30 08:44:37,259] SGD, Trial 18 finished with value: 2.2953897464047572
+[2024-11-30 08:47:34,217] SGD_Momentum, Trial 19 finished with value: 0.12407288087530441
+[2024-11-30 08:47:34,219] Best parameters: {'optimizer': 'Adam', 'adam_lr': 0.08039503587941793, 'input_size': 784, 'num_layers': 5, 'hidden_size_0': 128, 'hidden_size_1': 256, 'hidden_size_2': 256, 'hidden_size_3': 256, 'hidden_size_4': 128, 'num_classes': 10, 'batch_size': 64, 'dropout_rate': 0.5} with optimizer: Adam
+[2024-11-30 08:47:34,219] 
+Top 3 trials for SGD:
+[2024-11-30 08:47:34,219] Trial 15 with value: 0.07968277547062282 and params: {'optimizer': 'SGD', 'sgd_lr': 0.09390474718530048, 'input_size': 784, 'num_layers': 4, 'hidden_size_0': 128, 'hidden_size_1': 256, 'hidden_size_2': 128, 'hidden_size_3': 256, 'num_classes': 10, 'batch_size': 64, 'dropout_rate': 0.4}
+[2024-11-30 08:47:34,219] Trial 5 with value: 0.20189495513781527 and params: {'optimizer': 'SGD', 'sgd_lr': 0.0014274633456032744, 'input_size': 784, 'num_layers': 2, 'hidden_size_0': 128, 'hidden_size_1': 128, 'num_classes': 10, 'batch_size': 128, 'dropout_rate': 0.1}
+[2024-11-30 08:47:34,219] Trial 1 with value: 0.5229330008165746 and params: {'optimizer': 'SGD', 'sgd_lr': 0.000438233502486845, 'input_size': 784, 'num_layers': 3, 'hidden_size_0': 128, 'hidden_size_1': 256, 'hidden_size_2': 128, 'num_classes': 10, 'batch_size': 128, 'dropout_rate': 0.4}
+[2024-11-30 08:47:34,219] 
+Top 3 trials for SGD_Momentum:
+[2024-11-30 08:47:34,220] Trial 19 with value: 0.12407288087530441 and params: {'optimizer': 'SGD_Momentum', 'sgd_momentum_lr': 0.09583489134712761, 'momentum': 0.5135660168464111, 'input_size': 784, 'num_layers': 5, 'hidden_size_0': 128, 'hidden_size_1': 256, 'hidden_size_2': 256, 'hidden_size_3': 256, 'hidden_size_4': 128, 'num_classes': 10, 'batch_size': 64, 'dropout_rate': 0.5}
+[2024-11-30 08:47:34,220] Trial 3 with value: 0.13355651528909684 and params: {'optimizer': 'SGD_Momentum', 'sgd_momentum_lr': 0.0007260078327098607, 'momentum': 0.7353092993134743, 'input_size': 784, 'num_layers': 4, 'hidden_size_0': 128, 'hidden_size_1': 256, 'hidden_size_2': 256, 'hidden_size_3': 128, 'num_classes': 10, 'batch_size': 64, 'dropout_rate': 0.5}
+[2024-11-30 08:47:34,220] Trial 7 with value: 0.30651866913407666 and params: {'optimizer': 'SGD_Momentum', 'sgd_momentum_lr': 0.00010110287550311247, 'momentum': 0.8721429169267652, 'input_size': 784, 'num_layers': 3, 'hidden_size_0': 256, 'hidden_size_1': 128, 'hidden_size_2': 256, 'num_classes': 10, 'batch_size': 128, 'dropout_rate': 0.30000000000000004}
+[2024-11-30 08:47:34,220] 
+Top 3 trials for Adam:
+[2024-11-30 08:47:34,220] Trial 0 with value: 0.05857430298394458 and params: {'optimizer': 'Adam', 'adam_lr': 0.00010110966611103394, 'input_size': 784, 'num_layers': 2, 'hidden_size_0': 256, 'hidden_size_1': 128, 'num_classes': 10, 'batch_size': 128, 'dropout_rate': 0.30000000000000004}
+[2024-11-30 08:47:34,220] Trial 16 with value: 0.07200894361231358 and params: {'optimizer': 'Adam', 'adam_lr': 0.00032464204786027004, 'input_size': 784, 'num_layers': 3, 'hidden_size_0': 128, 'hidden_size_1': 256, 'hidden_size_2': 256, 'num_classes': 10, 'batch_size': 64, 'dropout_rate': 0.5}
+[2024-11-30 08:47:34,220] Trial 9 with value: 0.09717455306235934 and params: {'optimizer': 'Adam', 'adam_lr': 4.829210630896982e-05, 'input_size': 784, 'num_layers': 5, 'hidden_size_0': 256, 'hidden_size_1': 128, 'hidden_size_2': 128, 'hidden_size_3': 128, 'hidden_size_4': 256, 'num_classes': 10, 'batch_size': 256, 'dropout_rate': 0.4}
