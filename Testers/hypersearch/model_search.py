@@ -12,9 +12,9 @@ logging.basicConfig(level=logging.INFO, format='[%(asctime)s] %(message)s', hand
 
 # Dict. to store the best trials
 best_trials = {
-    'SGD': [],
-    'SGD_Momentum': [],
-    'Adam': []
+    'SGD': None,
+    'SGD_Momentum': None,
+    'Adam': None
 }
 
 def objective(trial):
@@ -30,7 +30,7 @@ def objective(trial):
         lr = trial.suggest_float('adam_lr', 1e-5, 1e-1, log=True)
         momentum = 0.0
 
-    # Common hyperpar.
+    # hyperparam. search space
     input_size = trial.suggest_categorical('input_size', [784])
     hidden_sizes = [trial.suggest_categorical('hidden_size_{}'.format(i), [256, 128]) for i in
                     range(trial.suggest_int('num_layers', 2, 5))]
@@ -53,14 +53,14 @@ def objective(trial):
     for epoch in range(EPOCHS):
         train_model(model, train_loader, optimizer, criterion)
 
-    # eval model
+    # Eval. model
     test_loss, accuracy = evaluate_model(model, test_loader, criterion)
     return test_loss
 
 def logging_callback(study, trial):
     optimizer_name = trial.params['optimizer']
-    best_trials[optimizer_name].append(trial)
-    best_trials[optimizer_name] = sorted(best_trials[optimizer_name], key=lambda t: t.value)[:3]
+    if best_trials[optimizer_name] is None or trial.value < best_trials[optimizer_name].value:
+        best_trials[optimizer_name] = trial
     logging.info(f"{optimizer_name}, Trial {trial.number} finished with value: {trial.value}")
 
 if __name__ == "__main__":
@@ -70,7 +70,7 @@ if __name__ == "__main__":
     study.optimize(objective, n_trials=100, callbacks=[logging_callback])
     logging.info(f"Best parameters: {study.best_params} with optimizer: {study.best_params['optimizer']}")
 
-    for optimizer_name, trials in best_trials.items():
-        logging.info(f"\nTop 3 trials for {optimizer_name}:")
-        for trial in trials:
+    for optimizer_name, trial in best_trials.items():
+        if trial:
+            logging.info(f"\nBest trial for {optimizer_name}:")
             logging.info(f"Trial {trial.number} with value: {trial.value} and params: {trial.params}")

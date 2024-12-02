@@ -1,59 +1,107 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import logging
 
+# Set up loging
+logging.basicConfig(level=logging.INFO, format='[%(asctime)s] %(message)s', handlers=[
+    logging.FileHandler("backprop_logs/back.log"),
+    logging.StreamHandler()
+])
 
-class Sigmoid:
+EPOCHS=500
+
+class SigmoidMethod:
+    """
+    Sigmoid forward: f(x) = 1 / (1 + e^(-x))
+
+    Derivacia forward: f'(x) = f(x) * (1 - f(x))
+    Sigmoid backward: gradient * Derivacia...
+    """
+
     def forward(self, x):
-        """
-        Sigmoid aktivačná funkcia: f(x) = 1 / (1 + e^(-x))
-        Derivácia: f'(x) = f(x) * (1 - f(x))
-        """
         self.x = x
-        return 1 / (1 + np.exp(-x))
+        self.output = 1 / (1 + np.exp(-x))
+        return self.output
 
     def backward(self, gradient):
-        sigmoid_derivative = self.forward(self.x) * (1 - self.forward(self.x))
-        return gradient * sigmoid_derivative
+        sigmoid_deriv = self.output * (1 - self.output)
+        return gradient * sigmoid_deriv
 
+class TanhMethod:
+    """
+       Tanh forward: tanh(x) = (e^x - e^(-x)) / (e^x + e^(-x))
 
-class ReLU:
+       Tanh backward: gradient = 1 - tanh(x)^2
+    """
+
     def forward(self, x):
-        """
-        ReLU aktivačná funkcia: f(x) = max(0, x)
-        Derivácia: f'(x) = 1 ak x > 0, inak 0
-        """
+        self.output = np.tanh(x)
+        return self.output
+
+    def backward(self, d_output):
+        return d_output * (1 - self.output ** 2)
+
+class ReLUMethod:
+    """
+    ReLU aktivated forward: f(x) = >0 - x
+
+    Derivacia forward: f'(x) = 1 ,pre x>0 |  0 ,pre x<=0
+    backward: gradient * Derivacia...
+    """
+
+    def forward(self, x):
         self.x = x
-        return np.maximum(0, x)
+        return np.maximum(0, x) # return 0 or x
 
     def backward(self, gradient):
         return gradient * (self.x > 0)
 
+class LossMethod:
+    """
+    Mean Squared Error (MSE) forward: loss= 1/n*sum((y_pred - y_true)^2)
+
+    backward: gradient = 2 * (y_pred - y_true) / n
+    """
+
+    def forward(self, predicted, target):
+        self.predicted = predicted
+        self.target = target
+        return np.mean((predicted - target) ** 2)
+
+    def backward(self):
+        return (2 * (self.predicted - self.target))/self.predicted.size
 
 class LinearLayer:
-    def __init__(self, input_size, output_size, learning_rate=0.1, momentum=0):
-        """
-        Lineárna vrstva s inicializáciou váh:
-        - Váhy: náhodné hodnoty z normálneho rozdelenia * 0.01
-        - Bias: nulové vektory
+    """
+    LinearLayer:
+    - Váhy: random hodnoty z normalneho rozdelenia * 0.01
+    - Bias: null vektors
 
-        Dopredný smer: y = Wx + b
-        Spätný smer: 
-        - Gradient váh: dL/dW = X^T * gradient
-        - Gradient bias: dL/db = sum(gradient)
-        - Gradient vstupu: dL/dX = gradient * W^T
-        """
+    forward: y= Wx + b
+
+    backward:
+    - Gradient weight(weights_gradient): dL/dW= X^T * gradient
+    - Gradient bias(biases_gradient): dL/db= sum(gradient)
+    - Gradient vstupu(input_gradient): dL/dX= gradient * W^T
+
+    if momentum > 0:
+    - weight_momentum: momentum * weight_momentum - learning_rate * weights_gradient
+    else:
+    - weights -= learning_rate * weights_gradient
+    """
+
+    def __init__(self, input_size, output_size, learning_rate=0.1, momentum=0.0):
         self.weights = np.random.randn(input_size, output_size) * 0.01
         self.biases = np.zeros((1, output_size))
         self.learning_rate = learning_rate
         self.momentum = momentum
 
-        # Momentum terms pre váhy a bias
         self.weight_momentum = np.zeros_like(self.weights)
         self.bias_momentum = np.zeros_like(self.biases)
 
-        # Uloženie vstupov a výstupov pre backpropagation
         self.last_input = None
         self.last_output = None
+
 
     def forward(self, x):
         self.last_input = x
@@ -61,41 +109,26 @@ class LinearLayer:
         return self.last_output
 
     def backward(self, gradient):
-        # Výpočet gradientov
         input_gradient = np.dot(gradient, self.weights.T)
         weights_gradient = np.dot(self.last_input.T, gradient)
         biases_gradient = np.sum(gradient, axis=0, keepdims=True)
 
-        # Aktualizácia váh s alebo bez momentu
-        if self.momentum > 0:
-            self.weight_momentum = self.momentum * self.weight_momentum - self.learning_rate * weights_gradient
-            self.bias_momentum = self.momentum * self.bias_momentum - self.learning_rate * biases_gradient
+        self.weight_momentum = self.momentum * self.weight_momentum - self.learning_rate * weights_gradient
+        self.bias_momentum = self.momentum * self.bias_momentum - self.learning_rate * biases_gradient
 
-            self.weights += self.weight_momentum
-            self.biases += self.bias_momentum
-        else:
-            self.weights -= self.learning_rate * weights_gradient
-            self.biases -= self.learning_rate * biases_gradient
+        self.weights += self.weight_momentum
+        self.biases += self.bias_momentum
 
         return input_gradient
 
+class LayerContainer:
+    """
+    forward: Prechadzame všetky vrstvy modelu v poradi a postupne volame ich forward
+    Vystup jednej vrstvy služia ako vstup pre next vrstvu
 
-class MSELoss:
-    def forward(self, predicted, target):
-        """
-        Mean Squared Error (MSE) chybová funkcia:
-        Loss = 1/n * sum((y_pred - y_true)^2)
-        Derivácia: gradient = 2 * (y_pred - y_true) / n
-        """
-        self.predicted = predicted
-        self.target = target
-        return np.mean((predicted - target) ** 2)
+    backward: Prechadza všetky vrstvy modelu v opačnom poradi (od last to first) a postupne volame ich backward
+    """
 
-    def backward(self):
-        return 2 * (self.predicted - self.target) / self.predicted.size
-
-
-class NeuralNetwork:
     def __init__(self, layers):
         self.layers = layers
 
@@ -109,121 +142,188 @@ class NeuralNetwork:
             gradient = layer.backward(gradient)
 
 
-def train_network(X, y, model, epochs=500, verbose=True):
-    """
-    Všeobecná trénovacia funkcia pre rôzne problémy
-    """
-    loss_fn = MSELoss()
-    losses = []
+import matplotlib.pyplot as plt
 
+
+def print_model_visual(results, title):
+    problems = ["XOR","xor", "AND", "ORR"]
+    for problem in problems:
+        plt.figure(figsize=(10, 6))
+        for name, losses in results.items():
+            if problem in name:
+                plt.plot(losses, label=name)
+        plt.title(f"{title} - {problem}")
+        plt.xlabel("Epoch")
+        plt.ylabel("Loss")
+        plt.legend()
+        plt.show()
+
+def train_model(X, y, model, epochs, verbose=True):
+    loss_fn = LossMethod()
+    losses = []
+    best_loss = float('inf')
     for epoch in range(epochs):
         total_loss = 0
 
         for i in range(len(X)):
-            # Dopredný smer
+            # forward pass
             prediction = model.forward(X[i].reshape(1, -1))
 
-            # Výpočet straty
+            # loss calculation
             loss = loss_fn.forward(prediction, y[i].reshape(1, -1))
             total_loss += loss
 
-            # Spätný smer
+            # backpropagation
             gradient = loss_fn.backward()
             model.backward(gradient)
 
         avg_loss = total_loss / len(X)
         losses.append(avg_loss)
 
+        # early stoping
+        if avg_loss < best_loss:
+            best_loss = avg_loss
+            early_stop_counter = 0
+        else:
+            early_stop_counter += 1
+
+        if early_stop_counter > epochs // 10:
+            logging.info(f"Early stopping at epoch {epoch}")
+            break
+
         if verbose and epoch % 50 == 0:
             print(f"Epoch {epoch}, Loss: {avg_loss}")
+            logging.info(f"Epoch {epoch}, Loss: {avg_loss}")
 
     return losses
 
-
-def plot_losses(results, title):
-    """
-    Vizualizácia priebehu trénovania
-    """
-    plt.figure(figsize=(10, 5))
-    for label, loss in results.items():
-        plt.plot(loss, label=label)
-    plt.title(title)
-    plt.xlabel('Epocha')
-    plt.ylabel('Strata')
-    plt.legend()
-    plt.tight_layout()
-    plt.show()
-
-
-def run_experiments():
-    # Trénovacie dáta pre logické operácie
+def main():
+    # XOR
     X_xor = np.array([[0, 0], [0, 1], [1, 0], [1, 1]])
     y_xor = np.array([[0], [1], [1], [0]])
 
-    X_and = X_xor
+    # AND
+    X_and = np.array([[0, 0], [0, 1], [1, 0], [1, 1]])
     y_and = np.array([[0], [0], [0], [1]])
 
-    X_or = X_xor
+    # OR
+    X_or = np.array([[0, 0], [0, 1], [1, 0], [1, 1]])
     y_or = np.array([[0], [1], [1], [1]])
 
-    # Experimenty s rôznymi konfiguráciami
-    experiments = {
-        "XOR (bez momentu, lr=0.1)": {
+    # XOR tests
+    tests = {
+        "xor (1 hidden layer) ReLu": {
             "X": X_xor, "y": y_xor,
             "layers": [
-                LinearLayer(2, 4, learning_rate=0.1, momentum=0),
-                Sigmoid(),
-                LinearLayer(4, 1, learning_rate=0.1, momentum=0),
-                Sigmoid()
+                LinearLayer(2, 4, learning_rate=0.01, momentum=0.8987060343120898),
+                ReLUMethod(),
+                LinearLayer(4, 1, learning_rate=0.01, momentum=0.8987060343120898),
+                ReLUMethod(),
             ]
         },
-        "XOR (s momentom, lr=0.1)": {
+        "xor (1 hidden layer) Tahn": {
             "X": X_xor, "y": y_xor,
             "layers": [
-                LinearLayer(2, 4, learning_rate=0.1, momentum=0.9),
-                Sigmoid(),
-                LinearLayer(4, 1, learning_rate=0.1, momentum=0.9),
-                Sigmoid()
+                LinearLayer(2, 4, learning_rate=0.01, momentum=0.8987060343120898),
+                TanhMethod(),
+                LinearLayer(4, 1, learning_rate=0.01, momentum=0.8987060343120898),
+                TanhMethod(),
             ]
         },
-        "XOR (s momentom, lr=0.01)": {
+        "XOR (2 hidden layers) Tanh": {
             "X": X_xor, "y": y_xor,
             "layers": [
-                LinearLayer(2, 4, learning_rate=0.01, momentum=0.9),
-                Sigmoid(),
-                LinearLayer(4, 1, learning_rate=0.01, momentum=0.9),
-                Sigmoid()
+                LinearLayer(2, 8, learning_rate=0.01, momentum=0.8987060343120898),
+                TanhMethod(),
+                LinearLayer(8, 4, learning_rate=0.01, momentum=0.8987060343120898),
+                TanhMethod(),
+                LinearLayer(4, 1, learning_rate=0.01, momentum=0.8987060343120898),
+                TanhMethod(),
             ]
-        }
+        },
+        "XOR (2 hidden layers) ReLu": {
+            "X": X_xor, "y": y_xor,
+            "layers": [
+                LinearLayer(2, 8, learning_rate=0.01, momentum=0),
+                ReLUMethod(),
+                LinearLayer(8, 4, learning_rate=0.01, momentum=0),
+                ReLUMethod(),
+                LinearLayer(4, 1, learning_rate=0.01, momentum=0),
+                ReLUMethod(),
+            ]
+        },
+
+        "xor (1 hidden layer) Sigmoid": {
+            "X": X_xor, "y": y_xor,
+            "layers": [
+                LinearLayer(2, 4, learning_rate=0.01, momentum=0.8987060343120898),
+                SigmoidMethod(),
+                LinearLayer(4, 1, learning_rate=0.01, momentum=0.8987060343120898),
+                SigmoidMethod(),
+            ]
+        },
+        "XOR (2 hidden layers) Sigmoid": {
+            "X": X_xor, "y": y_xor,
+            "layers": [
+                LinearLayer(2, 8, learning_rate=0.01, momentum=0.8987060343120898),
+                SigmoidMethod(),
+                LinearLayer(8, 4, learning_rate=0.01, momentum=0.8987060343120898),
+                SigmoidMethod(),
+                LinearLayer(4, 1, learning_rate=0.01, momentum=0.8987060343120898),
+                SigmoidMethod(),
+            ]
+        },
+
+        "xor (1 hidden layer) Mix": {
+            "X": X_xor, "y": y_xor,
+            "layers": [
+                LinearLayer(2, 4, learning_rate=0.01, momentum=0.8987060343120898),
+                ReLUMethod(),
+                LinearLayer(4, 1, learning_rate=0.01, momentum=0.8987060343120898),
+                SigmoidMethod(),
+            ]
+        },
+        "XOR Custom": {
+            "X": X_xor, "y": y_xor,
+            "layers": [
+                LinearLayer(2, 8, learning_rate=7.85101358317508e-05, momentum=0.8987060343120898),
+                ReLUMethod(),
+                LinearLayer(8, 4, learning_rate=7.85101358317508e-05, momentum=0.8987060343120898),
+                TanhMethod(),
+                LinearLayer(4, 1, learning_rate=7.85101358317508e-05, momentum=0.8987060343120898),
+                SigmoidMethod(),
+            ]
+        },
     }
 
-    # Pridať ďalšie experimenty AND, OR
-    for problem, config in [("AND", (X_and, y_and)), ("OR", (X_or, y_or))]:
+    # Add AND and OR tests
+    for problem, config in [("AND", (X_and, y_and)), ("ORR", (X_or, y_or))]:
         for layers_count in [1, 2]:
             if layers_count == 1:
                 layers = [
-                    LinearLayer(2, 1, learning_rate=0.1, momentum=0.9),
-                    Sigmoid()
+                    LinearLayer(2, 1, learning_rate=0.01, momentum=0.8987060343120898),
+                    SigmoidMethod()
                 ]
             else:
                 layers = [
-                    LinearLayer(2, 4, learning_rate=0.1, momentum=0.9),
-                    Sigmoid(),
-                    LinearLayer(4, 1, learning_rate=0.1, momentum=0.9),
-                    Sigmoid()
+                    LinearLayer(2, 4, learning_rate=0.01, momentum=0.8987060343120898),
+                    SigmoidMethod(),
+                    LinearLayer(4, 1, learning_rate=0.01, momentum=0.8987060343120898),
+                    SigmoidMethod()
                 ]
 
-            experiments[f"{problem} ({layers_count} vrstva, momentum)"] = {
+            tests[f"{problem} ({layers_count} layer, momentum)"] = {
                 "X": config[0], "y": config[1], "layers": layers
             }
 
-    # Trénovanie a ukladanie výsledkov
+
     results = {}
-    for name, config in experiments.items():
-        print(f"\nTrénovanie: {name}")
-        model = NeuralNetwork(config["layers"])
-        losses = train_network(config["X"], config["y"], model)
+    for name, config in tests.items():
+        print(f"\nTrain: {name}")
+        logging.info(f"Train: {name}")
+
+        model = LayerContainer(config["layers"])
+        losses = train_model(config["X"], config["y"], model, epochs=EPOCHS)
         results[name] = losses
 
-    # Vizualizácia výsledkov
-    plot_losses(results, "Priebeh trénovania pre rôzne konfigurácie")
+    print_model_visual(results, "Training XOR, AND, OR")

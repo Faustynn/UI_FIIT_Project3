@@ -2,10 +2,10 @@ import torch
 import torch.nn as nn
 import ssl
 import os
-
-from configuration.init_config import DEVICE
 from torch.utils.data import DataLoader
 from torchvision import datasets, transforms
+
+DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 # Set the SSL path
 ssl._create_default_https_context = ssl._create_unverified_context

@@ -1,4 +1,4 @@
-from backprop import run_experiments
+from backprop import main
 
 if __name__ == "__main__":
-    run_experiments()
+    main()
